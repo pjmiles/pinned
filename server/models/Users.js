@@ -4,8 +4,8 @@ const UserSchema = new mongoose.Schema({
   name: String,
   address: String,
   phoneNumber: String,
-//   lnt: Number,
-//   lat: Number,
+  lng: Number,
+  lat: Number,
 });
 
 const UserModel = mongoose.model("pinned", UserSchema);

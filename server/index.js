@@ -7,7 +7,7 @@ const UserModel = require("./models/Users");
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
 
 mongoose.connect(process.env.DATABASE_URL);
 
@@ -19,30 +19,34 @@ db.once("open", () => {
 });
 
 app.get("/users", async (req, res) => {
-  await UserModel.find({})
-    .then(function (user) {
-      res.json(user);
-    })
-    .catch(function (e) {
-      console.log(e);
-    });
-});
-
-app.post("/users", async (req, res) => {
-  const { name, address, phoneNumber } = req.body;
-
-  if (!name || !address || !phoneNumber) {
-    return res
-      .status(400)
-      .json({ error: "Please provide your details." });
+  try {
+    const users = await UserModel.find({});
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Error fetching users" });
   }
+});
+app.post("/users", async (req, res) => {
+  const { name, address, phoneNumber, lng, lat } = req.body;
+
+  if (!name || !address || !phoneNumber || !lng || !lat) {
+    return res.status(400).json({ error: "Please provide your details." });
+  }
+
   try {
     const newUserDetails = new UserModel({
       name,
       address,
       phoneNumber,
+      lng,
+      lat,
     });
     await newUserDetails.save();
+    res.status(201).json({
+      message: "User details saved successfully",
+      data: newUserDetails,
+    });
   } catch (error) {
     console.error("Error saving data:", error);
     res.status(500).json({ error: "Error saving data" });
